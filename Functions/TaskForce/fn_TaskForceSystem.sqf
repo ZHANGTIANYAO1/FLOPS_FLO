@@ -1332,5 +1332,5 @@ if (isNil "FLO_TaskForce_System") then {
     
    //Load data from data map
    private _dto = FLO_dataMap get ["FLO_TaskForce_System"];
-   if !(isNil "_dto") then {FLO_TaskForce_System call ["deserailize", [_dto]]};
+   if !(isNil "_dto") then {FLO_TaskForce_System call ["deserialize", [_dto]]};
 };

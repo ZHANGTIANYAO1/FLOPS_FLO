@@ -262,7 +262,7 @@ if (isServer && isNil "FLO_Intel_System") then {
     
    //Load data from data map
    private _dto = FLO_dataMap get ["FLO_Intel_System"];
-   if !(isNil "_dto") then {FLO_Intel_System call ["deserailize", [_dto]]};
+   if !(isNil "_dto") then {FLO_Intel_System call ["deserialize", [_dto]]};
    
     FLO_Intel_System call ["initDecayLoop", []];
 };

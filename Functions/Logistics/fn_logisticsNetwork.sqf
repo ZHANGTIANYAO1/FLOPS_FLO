@@ -446,5 +446,5 @@ if (isNil "FLO_Logistics_Network") then {
     
    //Load data from data map
    private _dto = FLO_dataMap get ["FLO_Logistics_Network"];
-   if !(isNil "_dto") then {FLO_Logistics_Network call ["deserailize", [_dto]]};
+   if !(isNil "_dto") then {FLO_Logistics_Network call ["deserialize", [_dto]]};
 };
