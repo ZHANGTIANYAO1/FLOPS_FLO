@@ -169,7 +169,7 @@ remoteExec ["FLO_fnc_MissionStartup", 2];
 diag_log "[FLO] Intelligence System initialized";
 
 // Initialize the resource system
-["init", []] call FLO_fnc_opforResources;
+[] call FLO_fnc_opforResources;
 diag_log "[FLO] Resource system initialized";
 
 // Initialize the garrison management system
@@ -184,9 +184,9 @@ diag_log "[FLO] Logistics network initialized";
 [] call FLO_fnc_TaskForceSystem;
 diag_log "[FLO] Task Force system initialized";
 
-// Initialize Task Force Garrison Integration System
-[] call FLO_fnc_taskForceGarrisonIntegration;
-diag_log "[FLO] Task Force Garrison Integration System initialized";
+// Initialize AI Commander Unit Capability Analyzer System
+[] call FLO_fnc_AICommanderUnitCapabilityAnalyzer;
+diag_log "[FLO] AI Commander Unit Capability Analyzer System initialized";
 
 // Initialize AI Commander
 FLO_AICommander = ["DEFEND"] call FLO_fnc_aiCommander;
@@ -290,7 +290,7 @@ if (AutoSaveSwitchVal isEqualTo 1) then {
 //             ["DefenseLine", 3, format ["Defense strength set to: %1", _defenseStrength]] call FLO_fnc_log;
             
 //             // Get current resources
-//             private _currentResources = ["get", []] call FLO_fnc_opforResources;
+//             private _currentResources = FLO_OPFOR_Resources call ["getResources", []];
 //             ["Resources", 3, format ["Current resources: %1", _currentResources]] call FLO_fnc_log;
             
 //             // Calculate the number of defense lines to create/reinforce based on resources

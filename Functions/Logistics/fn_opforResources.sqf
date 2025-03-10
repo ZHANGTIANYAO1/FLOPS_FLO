@@ -12,25 +12,11 @@
     - Military Headquarters (n_installation): 15 resources
     
     Parameter(s):
-    _mode - The function mode to execute ["init", "get", "add", "spend"] (String)
-    _params - Parameters based on mode (Array)
-        init: [] - No parameters needed
-        get: [] - No parameters needed
-        add: [_amount] - Amount to add
-        spend: [_amount] - Amount to spend
+        None
     
     Returns:
-    Based on mode:
-        init: Nothing
-        get: Number - Current resources
-        add: Number - New resource total
-        spend: Boolean - True if successfully spent, false if insufficient resources
+        None
 */
-
-params [
-    ["_mode", "init", [""]],
-    ["_params", [], [[]]]
-];
 
 // Only execute on server to prevent multiple resource systems running
 if (!isServer) exitWith {};
@@ -150,20 +136,9 @@ if (isNil "FLO_OPFOR_Resources") then {
     
     // Create the resource management object with initial resources of 0
     FLO_OPFOR_Resources = createHashMapObject [_resourceClass, 0];
-};
+    FLO_OPFOR_Resources call ["initResourceLoop", []];
 
-// Handle different operation modes
-private _result = switch (_mode) do {
-    // Initialize the resource system and start generation loop
-    case "init": {
-        _self = FLO_OPFOR_Resources;
-        _self call ["initResourceLoop", []];
-        0
-    };
-    
-   //Load data from data map
+    //Load data from data map
    private _dto = FLO_dataMap get ["FLO_OPFOR_Resources"];
-   if !(isNil "_dto") then {FLOR_OPFOR_Resources call ["deserailize", [_dto]]};
+   if !(isNil "_dto") then {FLO_OPFOR_Resources call ["deserialize", [_dto]]};
 };
-
-_result 
