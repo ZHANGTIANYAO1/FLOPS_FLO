@@ -34,6 +34,7 @@ VS_FPS = [];
 VSTimeDelay = 20;
 VSCurrentTime = diag_tickTime;
 VS_IsWorking = false;
+Centerposition = [worldSize / 2, worldsize / 2, 0];
 
 if (isNil "F_Init") then {F_Init = false;};
 
@@ -82,27 +83,6 @@ execVM "R3F_LOG\init.sqf";
 // ETV Init - Everyone
 execVM "Scripts\EtV.sqf";
 waitUntil {!isNil "EtVInitialized"};
-
-// private _executeAndWait= {
-//     params ["_script"];
-//     {
-//         private _handle = execVM _x;
-//         waitUntil {sleep 1; scriptDone _handle };
-//     } forEach _script;
-// };
-
-// // Faster method - compile and execute immediately
-// private _fastExecute = {
-//     params ["_scripts"];
-//     {
-//         diag_log format ["[FLO] Compiling and executing trigger script: %1", _x];
-//         call compileFinal preprocessFileLineNumbers _x;
-//         diag_log format ["[FLO] Completed trigger script: %1", _x];
-//     } forEach _scripts;
-// };
-
-// // Execute triggers using the faster method
-// [["Scripts\Init\init_Triggers_1.sqf", "Scripts\Init\init_Triggers_2.sqf", "Scripts\Init\init_Triggers_3.sqf"]] call _fastExecute;
 
 // Parallel execution
 {
@@ -189,7 +169,7 @@ remoteExec ["FLO_fnc_MissionStartup", 2];
 diag_log "[FLO] Intelligence System initialized";
 
 // Initialize the resource system
-[] call FLO_fnc_opforResources;
+["init", []] call FLO_fnc_opforResources;
 diag_log "[FLO] Resource system initialized";
 
 // Initialize the garrison management system

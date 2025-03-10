@@ -8,22 +8,24 @@ class FLO {
         class CDVS              {};
         class ICS               {};
         class MissionLoad       {preInit = 1;};
+        class initializeFOB     {};
+        class initializeOP      {};
     };
 
     class AI {
         file = "Functions\AI";
 
-        class artilleryPrep                {};
-        class airRecon                     {};
-        class airSupport                   {};
-        class executeAttackPattern         {};
-        class fireObserver                 {};
-        class calculateQRFResponse         {};
-        class requestQRF                   {};
-        class requestOffensiveOps          {};
-        class heliInsert                   {};
-        class aiCommander                  {};
-        class taskForceGarrisonIntegration {};
+        class artilleryPrep                     {};
+        class airRecon                          {};
+        class airSupport                        {};
+        class executeAttackPattern              {};
+        class fireObserver                      {};
+        class calculateQRFResponse              {};
+        class requestQRF                        {};
+        class requestOffensiveOps               {};
+        class heliInsert                        {};
+        class aiCommander                       {};
+        class aiCommanderUnitCapabilityAnalyzer {};
     };
 
     class Actions {
