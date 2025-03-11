@@ -68,6 +68,45 @@ if (behaviour (leader _realGroup) == "COMBAT") then {
 };
 _groupData set ["state", _state];
 
+// Save the composition of the group for persistence - only include living units
+// The ProcessedVehicles array is used to prevent duplicate vehicles from being added to the composition
+// This is a bit of a hack, but it works. I want to find a better way to do this, @Crashdome
+private _comp = [];
+private _processedVehicles = []; // Track vehicles we've already processed
+
+{
+    // Only include alive units in the composition
+    if (alive _x) then {
+        private _unit = _x;
+        private _unitType = "";
+        
+        if (vehicle _unit != _unit) then {
+            // Unit is in a vehicle
+            private _vehicle = vehicle _unit;
+            private _vehicleType = typeOf _vehicle;
+            
+            // Check if we've already processed this vehicle
+            if (!(_vehicle in _processedVehicles)) then {
+                // Add vehicle to processed list
+                _processedVehicles pushBack _vehicle;
+                
+                // Store the vehicle type
+                _unitType = _vehicleType;
+                _comp pushBack _unitType;
+                
+                ["VIRTUALIZATION", 3, format["Saving vehicle %1 to composition", _vehicleType]] call FLO_fnc_log;
+            };
+        } else {
+            // Unit is on foot - store as normal
+            _unitType = typeOf _unit;
+            _comp pushBack _unitType;
+        };
+    };
+} forEach units _realGroup;
+
+// Update the composition in the group data
+_groupData set ["comp", _comp];
+
 // Delete all units in the group
 {
     deleteVehicle _x;

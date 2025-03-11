@@ -45,13 +45,13 @@ while {(_groups getOrDefault [_groupId, objNull]) isNotEqualTo objNull} do {
 if (_unitCount < 0) then {
     switch (_groupType) do {
         case "infantry": { _unitCount = 8; };
-        case "motorized": { _unitCount = 4; };
-        case "mechanized": { _unitCount = 6; };
-        case "armor": { _unitCount = 3; };
-        case "helicopter": { _unitCount = 4; };
+        case "motorized": { _unitCount = 1; };
+        case "mechanized": { _unitCount = 1; };
+        case "armor": { _unitCount = 1; };
+        case "helicopter": { _unitCount = 1; };
         case "jet": { _unitCount = 1; };
-        case "air": { _unitCount = 2; };
-        case "artillery": { _unitCount = 3; };
+        case "air": { _unitCount = 1; };
+        case "artillery": { _unitCount = 1; };
         default { _unitCount = 4; };
     };
 };
@@ -67,7 +67,8 @@ private _groupData = createHashMapFromArray [
     ["isActive", false],
     ["realGroup", grpNull],
     ["state", "idle"],
-    ["waypoints", []]
+    ["waypoints", []],
+    ["comp", []]
 ];
 
 // Add group to virtualization system

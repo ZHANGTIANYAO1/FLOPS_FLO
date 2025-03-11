@@ -28,17 +28,27 @@ private _groupType = _groupData getOrDefault ["groupType", "infantry"];
 private _groupCfg = _groupData getOrDefault ["groupCfg", objNull];
 private _side = _groupData getOrDefault ["side", east];
 private _waypoints = _groupData getOrDefault ["waypoints", []];
+private _comp = _groupData getOrDefault ["comp", []];
 private _realGroup = grpNull;
 
 // Create the actual group based on group type
-switch (true) do {
+switch (true) do {    
+    // If we have a saved composition, use it to recreate the group exactly
+    case (_comp isNotEqualTo []): {
+        _realGroup = createGroup [_side, true];
+        {
+            private _unitType = _x;
+            [_realGroup, _unitType, _position, _side, _groupType] call FLO_fnc_activateSavedVirtualGroup;
+        } forEach _comp;
+    };
+
     // If we have a valid group config, use it to create the group
     case (!isNull _groupCfg): {
         _realGroup = [_position, _side, _groupCfg] call BIS_fnc_spawnGroup;
     };
     
     // Infantry based on East_Units array
-    case (_groupType == "infantry"): {
+    case (_groupType isEqualTo "infantry"): {
         private _unitCount = _groupData getOrDefault ["unitCount", 8];
         _realGroup = createGroup [_side, true];
         
@@ -93,7 +103,7 @@ switch (true) do {
         
         // Find appropriate spawn height for air vehicles
         private _spawnHeight = 0;
-        if (_groupType == "jet") then { _spawnHeight = 500; } else { _spawnHeight = 100; };
+        if (_groupType isEqualTo "jet") then { _spawnHeight = 500; } else { _spawnHeight = 100; };
         
         private _spawnPos = [_position select 0, _position select 1, _spawnHeight];
         
@@ -111,7 +121,7 @@ switch (true) do {
     };
     
     // Artillery groups
-    case (_groupType == "artillery"): {
+    case (_groupType isEqualTo "artillery"): {
         _realGroup = createGroup [_side, true];
         private _artilleryType = selectRandom East_Ground_Artillery;
         
