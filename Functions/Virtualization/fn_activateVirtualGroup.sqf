@@ -43,8 +43,9 @@ switch (true) do {
     };
 
     // If we have a valid group config, use it to create the group
-    case (!isNull _groupCfg): {
-        _realGroup = [_position, _side, _groupCfg] call BIS_fnc_spawnGroup;
+    case (_groupCfg isEqualType [] && {count _groupCfg > 0}): {
+        private _selectedCfg = selectRandom _groupCfg;
+        _realGroup = [_position, _side, _selectedCfg] call BIS_fnc_spawnGroup;
     };
     
     // Infantry based on East_Units array

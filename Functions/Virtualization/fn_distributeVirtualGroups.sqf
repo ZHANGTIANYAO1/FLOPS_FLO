@@ -84,7 +84,7 @@ if (_groupType in ["infantry", "motorized"] || {((getMarkerType _objectiveMarker
 // Get group config if infantry
 private _groupCfg = objNull;
 if (_groupType == "infantry" && {count East_Groups > 0}) then {
-    _groupCfg = selectRandom East_Groups;
+    _groupCfg = East_Groups;
 };
 
 // Create and distribute the groups
