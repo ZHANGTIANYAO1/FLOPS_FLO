@@ -25,7 +25,7 @@ params [
 // Remove existing waypoint markers for this group
 private _waypointMarkerPrefix = format["vwp_%1_", _groupId];
 {
-    if ((_x find _waypointMarkerPrefix) == 0) then {
+    if ((_x find _waypointMarkerPrefix) isEqualTo 0) then {
         deleteMarker _x;
     };
 } forEach allMapMarkers;
@@ -55,7 +55,7 @@ private _groupColor = if (_isActive) then {"ColorRed"} else {"ColorBlue"};
     _wpMarker setMarkerSize [0.5, 0.5];
     
     // Current waypoint has different color
-    if (_wpIndex == _currentWaypointIndex) then {
+    if (_wpIndex isEqualTo _currentWaypointIndex) then {
         _wpMarker setMarkerColor "ColorGreen";
     } else {
         _wpMarker setMarkerColor _groupColor;
@@ -65,7 +65,7 @@ private _groupColor = if (_isActive) then {"ColorRed"} else {"ColorBlue"};
     _wpMarker setMarkerText format["%1 - WP%2", _groupId, _wpIndex];
     
     // Create a line from previous point to this waypoint
-    private _lineStart = if (_wpIndex == 0) then {_groupPos} else {(_waypoints select (_wpIndex - 1)) select 0};
+    private _lineStart = if (_wpIndex isEqualTo 0) then {_groupPos} else {(_waypoints select (_wpIndex - 1)) select 0};
     private _lineName = format["%1line%2", _waypointMarkerPrefix, _wpIndex];
     
     // Create line marker

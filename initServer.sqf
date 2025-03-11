@@ -103,48 +103,48 @@ waitUntil {!isNil "EtVInitialized"};
         // Why is this here?
         // This is a convoy loop, move it to it's own file so we can preprocessFileLineNumbers it and pass CGM Properly
         // This causes convoys to be broken due to no CGM being passed
-        if (ConVLocc isEqualTo 1) then {
-            private _RoadMrks = allMapMarkers select {markerType _x isEqualTo "mil_dot" && markerColor _x isEqualTo "colorCivilian" && markerAlpha _x isEqualTo 0.3};
-            {deleteMarker _x} forEach _RoadMrks;
+        // if (ConVLocc isEqualTo 1) then {
+        //     private _RoadMrks = allMapMarkers select {markerType _x isEqualTo "mil_dot" && markerColor _x isEqualTo "colorCivilian" && markerAlpha _x isEqualTo 0.3};
+        //     {deleteMarker _x} forEach _RoadMrks;
 
-            // Get the CGM from missionNamespace
-            private _CGM = missionNamespace getVariable ["CGM", grpNull];
+        //     // Get the CGM from missionNamespace
+        //     private _CGM = missionNamespace getVariable ["CGM", grpNull];
             
-            // Make sure CGM exists before proceeding
-            if (!isNull _CGM) then {
-                {deleteWaypoint((waypoints _CGM) select 0);} forEach waypoints _CGM;
+        //     // Make sure CGM exists before proceeding
+        //     if (!isNull _CGM) then {
+        //         {deleteWaypoint((waypoints _CGM) select 0);} forEach waypoints _CGM;
 
-                (calculatePath ["wheeled_APC", "safe", position V0, position (selectRandom ((getMarkerPos "ConvoyDest") nearRoads 500))]) addEventHandler ["PathCalculated", {
-                    private _posesArr = _this select 1;
-                    private _posesArrCnt = count _posesArr;
-                    private _posesArrCntndd = round (_posesArrCnt / 10);
-                    private _indexed = [1,2,3,4,5,6,7,8,9];
-                    private _CGM = missionNamespace getVariable ["CGM", grpNull];
+        //         (calculatePath ["wheeled_APC", "safe", position V0, position (selectRandom ((getMarkerPos "ConvoyDest") nearRoads 500))]) addEventHandler ["PathCalculated", {
+        //             private _posesArr = _this select 1;
+        //             private _posesArrCnt = count _posesArr;
+        //             private _posesArrCntndd = round (_posesArrCnt / 10);
+        //             private _indexed = [1,2,3,4,5,6,7,8,9];
+        //             private _CGM = missionNamespace getVariable ["CGM", grpNull];
 
-                    {
-                        private _Waypos = _posesArr select (_x * _posesArrCntndd);
-                        private _wp = _CGM addWaypoint [_Waypos, 0];
-                        _wp SetWaypointType "MOVE";
-                        _wp setWaypointBehaviour "SAFE";
-                        _wp setWaypointSpeed "LIMITED";
-                    } forEach _indexed;
+        //             {
+        //                 private _Waypos = _posesArr select (_x * _posesArrCntndd);
+        //                 private _wp = _CGM addWaypoint [_Waypos, 0];
+        //                 _wp SetWaypointType "MOVE";
+        //                 _wp setWaypointBehaviour "SAFE";
+        //                 _wp setWaypointSpeed "LIMITED";
+        //             } forEach _indexed;
 
-                    {
-                        private _marker = createMarkerLocal [(str position V0) + str _forEachIndex, _x];
-                        _marker setMarkerTypeLocal "mil_dot";
-                        _marker setMarkerSizeLocal [0.5, 0.5];
-                        _marker setMarkerColorLocal "colorCivilian";
-                        _marker setMarkerAlpha 0.3;
-                    } forEach (_this select 1);
-                }];
-                sleep 2;
-                _CGM setFormation "WEDGE";
-                sleep 2;
-                _CGM setFormation "COLUMN";
-            } else {
-                diag_log "ERROR: CGM is null in convoy loop";
-            };
-        };
+        //             {
+        //                 private _marker = createMarkerLocal [(str position V0) + str _forEachIndex, _x];
+        //                 _marker setMarkerTypeLocal "mil_dot";
+        //                 _marker setMarkerSizeLocal [0.5, 0.5];
+        //                 _marker setMarkerColorLocal "colorCivilian";
+        //                 _marker setMarkerAlpha 0.3;
+        //             } forEach (_this select 1);
+        //         }];
+        //         sleep 2;
+        //         _CGM setFormation "WEDGE";
+        //         sleep 2;
+        //         _CGM setFormation "COLUMN";
+        //     } else {
+        //         diag_log "ERROR: CGM is null in convoy loop";
+        //     };
+        // };
 
         private _BluezoneMarks = allMapMarkers select { markerType _x isEqualTo "b_installation" && (markerColor _x isEqualTo "colorBLUFOR" or markerColor _x isEqualTo "ColorWEST") };
         { [1] call FLO_fnc_addReward; } foreach _BluezoneMarks;

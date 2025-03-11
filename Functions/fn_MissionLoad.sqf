@@ -8,6 +8,15 @@ publicVariable "MissionLoadedLitterally";
 private _missionTag = missionName;
 _missionTag = [_missionTag] call BIS_fnc_filterString;
 
+// Load master map of saved data (if available)
+FLO_dataMap = +(profileNamespace getVariable _missionTag + "_data");
+
+FLO_DATA_NEW = (isNil "FLO_dataMap" || ("FreshStart" call BIS_fnc_getParamValue) isEqualTo 1);
+if (FLO_DATA_NEW) then {
+    //Create empty data map for saved data
+	FLO_dataMap = createHashMap;
+};
+
 private _MarkerDataName = _missionTag + "_markers";
 private _VehicleDataName = _missionTag + "_Vehicles";
 private _ObjectDataName = _missionTag + "_Objects";
@@ -88,30 +97,7 @@ private _allVehNames = keys _GetVariableVeh;
     private _NewVeh = createVehicle [_Type, [0,0, (500 + random 2000)], [], 0, "CAN_COLLIDE"];
     _NewVeh setVectorDirAndUp _DirUp;
     _NewVeh setPosATL _posATL;
-
-    // private _vehicleConfig = configFile >> "CfgVehicles" >> typeOf _NewVeh;
-    // private _crewType = [west, _vehicleConfig] call BIS_fnc_selectCrew;
-    // private _CrewFull = createVehicleCrew _NewVeh;
-    // private _CrewSelCnt = count (units _CrewFull) - 1; 
-    // deleteVehicleCrew _NewVeh;
-    
-    // private _Group = createGroup West;
-    // for "_i" from 0 to _CrewSelCnt do { 
-    //     private _unit = _Group createUnit [_crewType, [0,0,0], [], 0, "CAN_COLLIDE"]; 
-    // };
-    
-    // {_x moveInAny _NewVeh} forEach units _Group;
 } forEach _allVehNames;
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Load garrison sizes and initialize garrisons for saved objectives
-private _garrisonLoadResult = FLO_Garrison_Manager call ["loadGarrisonSizes", []]; 
-if (_garrisonLoadResult) then {
-    [[west,"HQ"], "Garrison states loaded successfully..."] remoteExec ["sideChat", 0];
-} else {
-    [[west,"HQ"], "No saved garrison states found"] remoteExec ["sideChat", 0];
-};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -64,7 +64,7 @@ if (isNil "FLO_virtualGroups") then {
                         // Remove waypoint markers
                         private _waypointMarkerPrefix = format["vwp_%1_", _x];
                         {
-                            if ((_x find _waypointMarkerPrefix) == 0) then {
+                            if ((_x find _waypointMarkerPrefix) isEqualTo 0) then {
                                 deleteMarker _x;
                             };
                         } forEach allMapMarkers;
@@ -124,9 +124,24 @@ if (isNil "FLO_virtualGroups") then {
                         };
                     };
                 };
+            }],
+
+            ["Serialize", {
+                createHashMapFromArray [
+                    ["_groups", _self get "_groups"]
+                ];
+            }],
+
+            ["Deserialize", {
+                params ["_dto"];
+                _self set ["_groups", _dto get "_groups"];
             }]
         ]
     ];
+
+    // Load data from data map
+    private _dto = FLO_dataMap get ["FLO_virtualGroups"];
+    if !(isNil "_dto") then {FLO_virtualGroups call ["deserialize", [_dto]]};
     
     // Initialize update loop for checking activation distances
     [] spawn FLO_fnc_virtualGroupsUpdateLoop;
@@ -135,4 +150,4 @@ if (isNil "FLO_virtualGroups") then {
 };
 
 // Return the virtualization object
-FLO_virtualGroups 
+FLO_virtualGroups

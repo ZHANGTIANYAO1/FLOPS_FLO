@@ -59,10 +59,10 @@ _groupData set ["waypoints", _waypoints];
 
 // Save the current state/behavior before deleting
 private _state = "idle";
-if (behaviour (leader _realGroup) == "COMBAT") then {
+if (behaviour (leader _realGroup) isEqualTo "COMBAT") then {
     _state = "attacking";
 } else {
-    if (currentCommand (leader _realGroup) == "MOVE") then {
+    if (currentCommand (leader _realGroup) isEqualTo "MOVE") then {
         _state = "moving";
     };
 };

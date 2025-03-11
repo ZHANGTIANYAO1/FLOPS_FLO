@@ -29,7 +29,7 @@ while {true} do {
         private _currentTime = diag_tickTime;
         
         // Get all players
-        private _allPlayers = allPlayers select {alive _x && side _x == west};
+        private _allPlayers = allPlayers select {alive _x && side _x isEqualTo west};
         
         // Process each virtual group
         {
@@ -139,7 +139,7 @@ while {true} do {
             // If the group is active and has a real group that's been killed, remove it from the system
             if (_isActive && !isNull _realGroup) then {
                 // Check if the group has been eliminated
-                if ({alive _x} count units _realGroup == 0) then {
+                if ({alive _x} count units _realGroup isEqualTo 0) then {
                     // Removed dead group
                     [FLO_virtualGroups, _groupId] call (FLO_virtualGroups get "_removeGroup");
                 };

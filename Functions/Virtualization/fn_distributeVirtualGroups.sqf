@@ -24,7 +24,7 @@ params [
 ];
 
 // Check if marker exists
-if (_objectiveMarker == "" || {getMarkerColor _objectiveMarker == ""}) exitWith {
+if (_objectiveMarker isEqualTo "" || {getMarkerColor _objectiveMarker isEqualTo ""}) exitWith {
     ["VIRTUALIZATION", 2, format["Cannot distribute groups - invalid marker: %1", _objectiveMarker]] call FLO_fnc_log;
     []
 };
@@ -57,7 +57,7 @@ _distributionRadius = _distributionRadius max 30;
 private _importantPositions = [];
 
 // If this is a special objective type or has a specific prefix, look for terrain features
-if (_groupType in ["infantry", "motorized"] || {((getMarkerType _objectiveMarker) find "loc_") == 0}) then {
+if (_groupType in ["infantry", "motorized"] || {((getMarkerType _objectiveMarker) find "loc_") isEqualTo 0}) then {
     // Find elevated positions within 300-800m of the objective
     for "_i" from 0 to 7 do {
         private _searchAngle = (_i * 45) + (random 20);
@@ -83,7 +83,7 @@ if (_groupType in ["infantry", "motorized"] || {((getMarkerType _objectiveMarker
 
 // Get group config if infantry
 private _groupCfg = objNull;
-if (_groupType == "infantry" && {count East_Groups > 0}) then {
+if (_groupType isEqualTo "infantry" && {count East_Groups > 0}) then {
     _groupCfg = East_Groups;
 };
 

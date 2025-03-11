@@ -14,12 +14,18 @@ private _ObjectDataName = _missionTag + "_Objects";
 private _structureMarkerName = _missionTag + "_StructureMarkers";
 private _missionStructureTypes = _missionTag + "_StructureTypes";
 
+// Save data map
+FLO_dataMap set ["FLO_virtualGroups",FLO_virtualGroups call ["serialize",[]]];
+
 profileNamespace setVariable [_MarkerTimeName, nil];
 profileNamespace setVariable [_MarkerDataName, nil];
 profileNamespace setVariable [_VehicleDataName, nil];
 profileNamespace setVariable [_ObjectDataName, nil];
 profileNamespace setVariable [_structureMarkerName, nil];
 profileNamespace setVariable [_missionStructureTypes, nil];
+
+// New Way to save data map
+profileNamespace setVariable ["FLO_dataMap", FLO_dataMap];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -239,14 +245,6 @@ private _SaveMarks = allMapMarkers select {
 profileNamespace setVariable [_MarkerDataName, _MarkerDataHash];
 
 ["Mission", 3, "BattleField Saved Successfully ..."] call FLO_fnc_log;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Save garrisons state before finalizing the mission save
-private _garrisonSaveResult = FLO_Garrison_Manager call ["saveGarrisonSizes", []];
-if !(_garrisonSaveResult) then {
-    [[west,"HQ"], "Warning: Failed to save garrison states"] remoteExec ["sideChat", 0];
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
