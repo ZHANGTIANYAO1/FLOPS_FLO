@@ -23,9 +23,9 @@ params [["_operationMode", "DEFEND", [""]]];
 // Initialize variables
 private _lastCommanderUpdate = diag_tickTime;
 private _commanderUpdateInterval = 300; // 5 minutes between strategy updates
-private _currentThreatLevel = 0;
 private _threatThreshold = 0.6; // Threshold to switch to defensive mode if under heavy attack
-private _taskForceStrengthFactor = 1.0; // Multiplier for task force size
+private _currentThreatLevel = 0;
+private _currentStrength = 1.0;
 
 // Set up the Commander object using a HashMap
 private _aiCommander = createHashMapObject [[
@@ -48,62 +48,14 @@ private _aiCommander = createHashMapObject [[
             // Adjust task force behavior based on new mode
             switch (_newMode) do {
                 case "Offensive": {
-                    _self set ["_taskForceStrengthFactor", 1.5]; // More offensive units
+                    _self set ["_currentStrength", 1.2]; // More offensive units
                 };
                 case "Defensive": {
-                    _self set ["_taskForceStrengthFactor", 0.8]; // Focus on defense
+                    _self set ["_currentStrength", 0.8]; // Focus on defense
                 }; 
                 // TODO: Add Additional Operation Modes Here
             };
         }
-    }],
-    
-    ["_assessThreat", {
-        // Get all OPFOR outposts - updated with correct marker criteria
-        private _outposts = (allMapMarkers select {
-            markerColor _x in ["colorOPFOR", "ColorEAST"] && 
-            markerType _x in ["o_support", "n_support", "o_installation", "n_installation", "loc_Power", "loc_Ruin", "o_recon", "o_antiair", "o_service"]
-        });
-        
-        // Count blufor forces near OPFOR outposts to assess threat
-        private _totalThreat = 0;
-        private _totalOutposts = count _outposts;
-        
-        {
-            private _outpost = _x;
-            private _position = getMarkerPos _outpost;
-            private _nearBlufor = _position nearEntities [["Man", "LandVehicle"], 500];
-            _nearBlufor = _nearBlufor select {side _x == west && !(captive _x)};
-            
-            private _outpostThreat = count _nearBlufor / 20; // Normalize
-            _outpostThreat = _outpostThreat min 1; // Cap at 1
-            
-            // Save status to outpost map
-            (_self get "_outpostStatus") set [_outpost, [_outpostThreat, _nearBlufor]];
-            
-            _totalThreat = _totalThreat + _outpostThreat;
-        } forEach _outposts;
-        
-        // Calculate average threat
-        if (_totalOutposts > 0) then {
-            _totalThreat = _totalThreat / _totalOutposts;
-        };
-        
-        // Update threat level
-        _self set ["_threatLevel", _totalThreat];
-        
-        // Auto-adjust operation mode based on threat
-        if (_totalThreat > (_self get "_threatThreshold") && (_self get "_operationMode") == "ATTACK") then {
-            _self call ["_updateOperationMode", ["DEFEND"]];
-        };
-        
-        if (_totalThreat < 0.3 && (_self get "_operationMode") == "DEFEND") then {
-            _self call ["_updateOperationMode", ["PATROL"]];
-        };
-        
-        ["AI Commander", 3, format["Current threat assessment: %1", _totalThreat]] call FLO_fnc_log;
-        
-        _totalThreat
     }],
     
     ["_update", {
@@ -116,10 +68,7 @@ private _aiCommander = createHashMapObject [[
         if (_currentTime - _lastUpdate < _updateInterval) exitWith {};
         
         // Assess current threat situation
-        private _threat = _self call ["_assessThreat", []];
-        
-        // Deploy task forces as needed
-        _self call ["_deployTaskForces", []];
+        // private _threat = _self call ["_assessThreat", []];
         
         // Occasionally check for BLUFOR in the field even outside regular task force deployment
         // This ensures direct response to BLUFOR incursions
@@ -127,214 +76,8 @@ private _aiCommander = createHashMapObject [[
             _self call ["_attackBluforInField", [_self get "_taskForceStrengthFactor"]];
         };
         
-        // Check if it's time for special operations (and we don't have an active team)
-        private _lastSpecialOps = _self get "_lastSpecialOps";
-        private _specialOpsInterval = _self get "_specialOpsUpdateInterval";
-        
-        // TOOD: GET THIS WORKING
-        // if (_currentTime - _lastSpecialOps > _specialOpsInterval && !(_self get "_hasSpecialOps")) then {
-        //     _self call ["_deploySpecialOperations", []];
-        // };
-        
         // Update last update time
         _self set ["_lastUpdate", _currentTime];
-    }],
-    
-    // Add a new method to select the best outpost based on garrison strength
-    // This will be converted to _selectBestOutpostToAssign VGroup Too
-    // Pending Crashdome's Opinion
-    ["_selectBestOutpostForTaskForce", {
-        params ["_availableOutposts", "_requiredSize"];
-        
-        // Default to random selection if no specific size is provided
-        if (isNil "_requiredSize" || {_requiredSize <= 0}) exitWith {
-            selectRandom _availableOutposts
-        };
-        
-        // Get frontline outposts from Logistics Network if available
-        private _frontlineOutposts = [];
-        if (!isNil "FLO_Logistics_Network") then {
-            _frontlineOutposts = FLO_Logistics_Network call ["getFrontlineOutposts", []];
-            ["AI Commander", 3, format["Found %1 frontline outposts from Logistics Network", count _frontlineOutposts]] call FLO_fnc_log;
-        };
-        
-        // Filter available outposts to prioritize frontline outposts
-        private _prioritizedOutposts = [];
-        if (count _frontlineOutposts > 0) then {
-            // Only include outposts that are both available and on the frontline
-            _prioritizedOutposts = _availableOutposts select {_x in _frontlineOutposts};
-            
-            ["AI Commander", 3, format["%1 of %2 available outposts are on the frontline", 
-                count _prioritizedOutposts, count _availableOutposts]] call FLO_fnc_log;
-                
-            // If we found frontline outposts among available ones, use only those
-            if (count _prioritizedOutposts > 0) then {
-                _availableOutposts = _prioritizedOutposts;
-            } else {
-                ["AI Commander", 3, "No frontline outposts available for task force, using standard available outposts"] call FLO_fnc_log;
-            };
-        } else {
-            ["AI Commander", 3, "No frontline outposts data from Logistics Network, using standard available outposts"] call FLO_fnc_log;
-        };
-        
-        private _bestOutpost = "";
-        private _bestSurplus = 0;
-        private _candidates = [];
-        
-        // First, check all outposts and calculate their surplus capacity
-        {
-            private _outpost = _x;
-            // Get garrison data
-            private _garrisonStrength = FLO_Garrison_Manager call ["_checkGarrisonStrength", [_outpost]];
-            
-            // Get minimum required garrison size based on marker type
-            private _markerType = markerType _outpost;
-            private _baseMinSize = switch (_markerType) do {
-                case "o_installation": { 15 };
-                case "n_installation": { 12 };
-                case "o_support": { 8 };
-                case "n_support": { 10 };
-                case "loc_Power": { 6 };
-                case "o_recon": { 2 };
-                case "o_service": { 6 };
-                case "o_antiair": { 8 };
-                case "loc_Ruin": { 12 };
-                default { 4 };
-            };
-            
-            // Calculate adjusted minimum based on current strength
-            private _adjustedMin = switch (true) do {
-                case (_garrisonStrength >= 75): { _baseMinSize * 0.5 }; // Very large garrisons can go down to 50% of min
-                case (_garrisonStrength >= 50): { _baseMinSize * 0.6 }; // Large garrisons can go down to 60% of min
-                case (_garrisonStrength >= 30): { _baseMinSize * 0.7 }; // Medium garrisons can go down to 70% of min
-                case (_garrisonStrength >= 20): { _baseMinSize * 0.8 }; // Smaller garrisons can go down to 80% of min
-                default { _baseMinSize }; // Base minimum for small garrisons
-            };
-            _adjustedMin = round _adjustedMin max 2;
-            
-            // Calculate surplus - how many units can we pull without going below the adjusted minimum
-            private _surplus = _garrisonStrength - _adjustedMin;
-            
-            // Add frontline bonus for outposts that are on the frontline
-            private _frontlineBonus = if (_outpost in _frontlineOutposts) then {
-                // Give extra weight to frontline outposts
-                _surplus = _surplus * 1.5;
-                " (FRONTLINE)"
-            } else {
-                ""
-            };
-            
-            // Store as a candidate if it has sufficient surplus
-            if (_surplus >= _requiredSize) then {
-                // Include outpost, strength, surplus, and frontline status in the candidate data
-                _candidates pushBack [_outpost, _garrisonStrength, _surplus, _adjustedMin, _outpost in _frontlineOutposts];
-                
-                // Track the outpost with the largest surplus as fallback
-                if (_surplus > _bestSurplus) then {
-                    _bestOutpost = _outpost;
-                    _bestSurplus = _surplus;
-                };
-                
-                ["AI Commander", 4, format["Candidate outpost: %1%2 with %3 units (surplus: %4, min: %5)", 
-                    _outpost, _frontlineBonus, _garrisonStrength, _surplus, _adjustedMin]] call FLO_fnc_log;
-            };
-        } forEach _availableOutposts;
-        
-        // If we have candidates, select the best one
-        if (count _candidates > 0) then {
-            // First sort by frontline status (prioritize frontline outposts)
-            _candidates = [_candidates, [], {if (_x select 4) then {0} else {1}}, "ASCEND"] call BIS_fnc_sortBy;
-            
-            // Then prioritize by surplus-to-strength ratio within each category (frontline vs non-frontline)
-            private _frontlineCandidates = _candidates select {_x select 4};
-            private _otherCandidates = _candidates select {!(_x select 4)};
-            
-            // Sort frontline candidates 
-            if (count _frontlineCandidates > 0) then {
-                _frontlineCandidates = [_frontlineCandidates, [], {(_x select 2) / (_x select 1)}, "DESCEND"] call BIS_fnc_sortBy;
-                
-                // Take the top 3 if available
-                private _topCandidates = if (count _frontlineCandidates > 3) then {
-                    _frontlineCandidates select [0, 3]
-                } else {
-                    _frontlineCandidates
-                };
-                
-                // From the top candidates, pick the one closest to the task force size + buffer
-                _topCandidates = [_topCandidates, [], {abs((_x select 1) - (_requiredSize + 8))}, "ASCEND"] call BIS_fnc_sortBy;
-                
-                // Select the best candidate
-                _bestOutpost = (_topCandidates select 0) select 0;
-                
-                ["AI Commander", 3, format["Selected FRONTLINE outpost %1 with %2 units (surplus: %3, min: %4) for task force requiring %5 units", 
-                    _bestOutpost, 
-                    (_topCandidates select 0) select 1, 
-                    (_topCandidates select 0) select 2,
-                    (_topCandidates select 0) select 3,
-                    _requiredSize]] call FLO_fnc_log;
-            } else {
-                // If no frontline candidates, use other candidates
-                _otherCandidates = [_otherCandidates, [], {(_x select 2) / (_x select 1)}, "DESCEND"] call BIS_fnc_sortBy;
-                
-                // Take the top 3 if available
-                private _topCandidates = if (count _otherCandidates > 3) then {
-                    _otherCandidates select [0, 3]
-                } else {
-                    _otherCandidates
-                };
-                
-                // From the top candidates, pick the one closest to the task force size + buffer
-                _topCandidates = [_topCandidates, [], {abs((_x select 1) - (_requiredSize + 8))}, "ASCEND"] call BIS_fnc_sortBy;
-                
-                // Select the best candidate
-                _bestOutpost = (_topCandidates select 0) select 0;
-                
-                ["AI Commander", 3, format["No frontline outposts available with sufficient units. Selected standard outpost %1 with %2 units (surplus: %3, min: %4) for task force requiring %5 units", 
-                    _bestOutpost, 
-                    (_topCandidates select 0) select 1, 
-                    (_topCandidates select 0) select 2,
-                    (_topCandidates select 0) select 3,
-                    _requiredSize]] call FLO_fnc_log;
-            };
-        } else {
-            // If no suitable candidates, pick the one with the largest garrison
-            private _largestOutpost = "";
-            private _largestStrength = 0;
-            private _isFrontline = false;
-            
-            {
-                private _outpost = _x;
-                private _strength = FLO_Garrison_Manager call ["_checkGarrisonStrength", [_outpost]];
-                private _outpostIsFrontline = _outpost in _frontlineOutposts;
-                
-                // Prioritize frontline outposts or ones with larger strength
-                if ((_outpostIsFrontline && (!_isFrontline || _strength > _largestStrength * 0.7)) || 
-                    (!_isFrontline && !_outpostIsFrontline && _strength > _largestStrength)) then {
-                    _largestOutpost = _outpost;
-                    _largestStrength = _strength;
-                    _isFrontline = _outpostIsFrontline;
-                };
-            } forEach _availableOutposts;
-            
-            if (_largestStrength > 0) then {
-                _bestOutpost = _largestOutpost;
-                private _frontlineStatus = if (_isFrontline) then {"FRONTLINE "} else {""};
-                ["AI Commander", 3, format["No outposts with sufficient surplus found. Using largest available: %1%2 with %3 units (need %4)", 
-                    _frontlineStatus, _bestOutpost, _largestStrength, _requiredSize]] call FLO_fnc_log;
-            } else {
-                // Last resort - prioritize frontline outposts for random selection
-                if (count _prioritizedOutposts > 0) then {
-                    _bestOutpost = selectRandom _prioritizedOutposts;
-                    ["AI Commander", 3, format["No outposts with units found. Randomly selected FRONTLINE outpost %1", _bestOutpost]] call FLO_fnc_log;
-                } else {
-                    // If no frontline outposts, use any available outpost
-                    _bestOutpost = selectRandom _availableOutposts;
-                    ["AI Commander", 3, format["No outposts with units found. Randomly selected outpost %1", _bestOutpost]] call FLO_fnc_log;
-                };
-            };
-        };
-        
-        _bestOutpost
     }],
     
     // Issue waypoints to virtual group
